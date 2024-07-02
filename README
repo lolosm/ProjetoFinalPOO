@@ -1,0 +1,11 @@
+Você deve instalar: 
+  - pip install requests
+  - pip install pillow
+  - pip install unidecode
+  - pip install python-dotenv
+
+Ao realizar o clone você deve criar uma conta em "https://newsapi.org/" e seguir os seguintes passos:
+  - Clicar em Get API Key e em seguida crie sua conta
+  - Confirmar seu e-mail 
+  - Após registrado, copie a chave fornecida 
+  - Crie um .env e cole a chave nesse formato: API_KEY = "sua_chave_secreta"  

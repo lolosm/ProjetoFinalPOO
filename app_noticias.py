@@ -1,52 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
-import requests
-import json
-import os
-
-
-class GerenciadorDeDadosJSON:
-    @staticmethod
-    def salvar_dados(nome_arquivo, dados):
-        with open(nome_arquivo, 'w') as arquivo:
-            json.dump(dados, arquivo, indent=4)
-
-    @staticmethod
-    def carregar_dados(nome_arquivo):
-        if os.path.exists(nome_arquivo):
-            with open(nome_arquivo, 'r') as arquivo:
-                return json.load(arquivo)
-        return []
-
-
-class GerenciadorDeNoticias(GerenciadorDeDadosJSON):
-    ARQUIVO_NOTICIAS = "noticias.json"
-
-    @staticmethod
-    def salvar_noticias(noticias):
-        GerenciadorDeNoticias.salvar_dados(GerenciadorDeNoticias.ARQUIVO_NOTICIAS, noticias)
-
-    @staticmethod
-    def carregar_noticias():
-        return GerenciadorDeNoticias.carregar_dados(GerenciadorDeNoticias.ARQUIVO_NOTICIAS)
-
-
-class APINoticias:
-    URL_API = "https://newsapi.org/v2/everything"
-    API_KEY = "8129034942c74199a52d0045d9a38c19"
-
-    @staticmethod
-    def obter_noticias(palavra_chave):
-        parametros = {
-            "q": palavra_chave,
-            "apiKey": APINoticias.API_KEY,
-            "language": "pt"
-        }
-        resposta = requests.get(APINoticias.URL_API, params=parametros)
-        if resposta.status_code == 200:
-            return resposta.json()
-        else:
-            raise Exception("Erro ao buscar notícias")
+from api_noticias import APINoticias
+from gerenciador_de_noticias import GerenciadorDeNoticias
 
 
 class AppNoticias:
@@ -110,9 +65,3 @@ class AppNoticias:
             GerenciadorDeNoticias.salvar_noticias(noticias)
         else:
             messagebox.showinfo("Informação", "Nenhuma notícia encontrada.")
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = AppNoticias(root)
-    root.mainloop()
