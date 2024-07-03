@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+import webbrowser
 from api_noticias import APINoticias
 from gerenciador_de_noticias import GerenciadorDeNoticias
 
@@ -16,27 +17,40 @@ class AppNoticias:
     def init_tela_inicial(self):
         self.limpar_tela()
         self.root.title("App de Notícias")
-        self.root.geometry("700x600")
-        self.root.configure(background='#B0E0E6')
+        self.root.geometry("830x600")
+        self.root.configure(background='#f0f0f0')
 
-        titulo = tk.Label(self.root, text="App de Notícias", font=('Arial', 20, 'bold'), background='#B0E0E6')
+        titulo = tk.Label(self.root, text="App de Notícias", font=('Helvetica', 24, 'bold'), background='#f0f0f0', fg='#333333')
         titulo.pack(pady=20)
 
-        frame_entradas = tk.Frame(self.root, background='#B0E0E6')
+        frame_entradas = tk.Frame(self.root, background='#f0f0f0')
         frame_entradas.pack(pady=10)
 
-        tk.Label(frame_entradas, text="Palavra-chave:", background='#B0E0E6', font=('Arial', 14)).grid(row=0, column=0, padx=10, pady=5)
-        self.campo_palavra_chave = tk.Entry(frame_entradas, font=('Arial', 14))
+        tk.Label(frame_entradas, text="Palavra-chave:", background='#f0f0f0', font=('Helvetica', 14)).grid(row=0, column=0, padx=10, pady=5)
+        self.campo_palavra_chave = tk.Entry(frame_entradas, font=('Helvetica', 14), width=30)
         self.campo_palavra_chave.grid(row=0, column=1, padx=10, pady=5)
 
-        botao_buscar = tk.Button(self.root, text="Buscar Notícias", command=self.buscar_e_exibir_noticias, bg='#008CBA', fg='white', font=('Arial', 12))
+        botao_buscar = tk.Button(self.root, text="Buscar Notícias", command=self.buscar_e_exibir_noticias, bg='#00008B', fg='white', font=('Helvetica', 12), width=20)
         botao_buscar.pack(pady=10)
 
-        frame_noticias = tk.Frame(self.root, background='#B0E0E6')
-        frame_noticias.pack(pady=10)
+        self.frame_canvas = tk.Frame(self.root, background='#f0f0f0')
+        self.frame_canvas.pack(pady=10, fill=tk.BOTH, expand=True)
 
-        self.texto_resultado = tk.Text(frame_noticias, height=20, width=80, wrap=tk.WORD, background='#E0FFFF', font=('Arial', 14))
-        self.texto_resultado.pack(pady=5, padx=10, fill=tk.BOTH, expand=True)
+        self.canvas = tk.Canvas(self.frame_canvas, background='#f0f0f0', bd=0, highlightthickness=0)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.scrollbar = tk.Scrollbar(self.frame_canvas, orient="vertical", command=self.canvas.yview)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+
+        self.frame_noticias = tk.Frame(self.canvas, background='#f0f0f0')
+        self.canvas.create_window((0, 0), window=self.frame_noticias, anchor="nw")
+
+        self.frame_noticias.bind("<Configure>", self.on_frame_configure)
+
+    def on_frame_configure(self, event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
 
     def buscar_e_exibir_noticias(self):
         palavra_chave = self.campo_palavra_chave.get()
@@ -52,16 +66,27 @@ class AppNoticias:
             return
 
         if noticias:
-            self.texto_resultado.delete(1.0, tk.END)
+            for widget in self.frame_noticias.winfo_children():
+                widget.destroy()
+
             for noticia in noticias:
                 titulo = noticia["title"]
                 descricao = noticia["description"]
                 url = noticia["url"]
 
-                self.texto_resultado.insert(tk.END, f"Título: {titulo}\n")
-                self.texto_resultado.insert(tk.END, f"Descrição: {descricao}\n")
-                self.texto_resultado.insert(tk.END, f"Link: {url}\n\n")
+                noticia_frame = tk.Frame(self.frame_noticias, background='#ffffff', bd=1, relief=tk.SOLID)
+                noticia_frame.pack(pady=10, padx=10, fill=tk.X, expand=True)
 
+                label_titulo = tk.Label(noticia_frame, text=titulo, font=('Helvetica', 16, 'bold'), background='#ffffff', wraplength=750, justify=tk.LEFT, fg='#333333')
+                label_titulo.pack(anchor='w', padx=10, pady=5)
+
+                label_descricao = tk.Label(noticia_frame, text=descricao, font=('Helvetica', 14), background='#ffffff', wraplength=750, justify=tk.LEFT, fg='#666666')
+                label_descricao.pack(anchor='w', padx=10, pady=5)
+
+                botao_link = tk.Button(noticia_frame, text="Leia mais", command=lambda url=url: webbrowser.open(url), bg='#4169E1', fg='white', font=('Helvetica', 12), width=15)
+                botao_link.pack(anchor='e', padx=10, pady=5)
+
+            self.on_frame_configure(None)
             GerenciadorDeNoticias.salvar_noticias(noticias)
         else:
             messagebox.showinfo("Informação", "Nenhuma notícia encontrada.")
